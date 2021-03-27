@@ -9,6 +9,4 @@ app.use('*', (req, res)=>{
   res.status(404).end();
 });
 
-app.listen(process.env.PORT, ()=>{
-  console.log(`Listening at http://localhost:${process.env.PORT}`);
-});
+module.exports = app;
