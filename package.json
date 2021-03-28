@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "knex migrate:latest && node index.js",
     "test": "mocha tests/index.test.js",
+    "migrate": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
     "dev": "nodemon index.js"
   },
   "repository": {
