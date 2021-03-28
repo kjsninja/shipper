@@ -34,10 +34,16 @@ router.get('/:publicKey', (req, res) => {
 
 router.delete('/:privateKey', (req, res) => {
   const file = path.join(process.env.BASE_DIR, process.env.UPLOAD_DIR, '3.pdf');
-  unlinkSync(file);
-  res.json({
-    msg: 'Success',
-  });
+  try {
+    unlinkSync(file);
+    res.json({
+      msg: 'Success',
+    });
+  } catch (e) {
+    res.status(400).json({
+      msg: 'File not found',
+    });
+  }
 });
 
 module.exports = router;
