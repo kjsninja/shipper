@@ -1,47 +1,52 @@
 const router = require('express').Router();
-const path = require('path');
 const mw = require('../middlewares/headers');
 const Files = require('../lib/Files');
-const mimetype = require('mime-types');
-const {unlinkSync} = require('fs');
 const FilesModel = require('../models/Files');
 const {v4} = require('uuid');
 
 // eslint-disable-next-line max-len
-router.post('/', [mw.checkMultipart, new Files('disk').single('file')], async (req, res)=>{
-  const payload = {
-    ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-    publicKey: v4(),
-    privateKey: v4(),
-    file: req.file,
-    storage: 'disk',
-  };
-  const file = await FilesModel.create(payload);
-  if (file) {
-    res.json({
-      publicKey: payload.publicKey,
-      privateKey: payload.privateKey,
-    });
-  } else {
-    res.status(400).json({
-      msg: 'Failed to upload a file',
-    });
-  }
+router.post('/', [mw.checkMultipart], (req, res)=>{
+  (new Files(process.env.STORAGE_TYPE).single('file'))(req, res, async (err) => {
+    if (err) {
+      res.status(400).json({
+        msg: 'An unknown error occurred when uploading.',
+      });
+    } else {
+      if (req.file) {
+        const payload = {
+          ip: req.ip,
+          publicKey: v4(),
+          privateKey: v4(),
+          file: req.file,
+          storage: process.env.STORAGE_TYPE,
+        };
+        const file = await FilesModel.create(payload);
+        if (file) {
+          res.json({
+            publicKey: payload.publicKey,
+            privateKey: payload.privateKey,
+          });
+        } else {
+          res.status(400).json({
+            msg: 'Failed to upload a file',
+          });
+        }
+      } else {
+        res.status(400).json({
+          msg: 'Missing file',
+        });
+      }
+    }
+  });
 });
 
 router.get('/:publicKey', async (req, res) => {
   const file = await FilesModel.getFileByPublicKey(req.params.publicKey);
   if (file) {
-    const filePath = path.join(process.env.BASE_DIR, process.env.UPLOAD_DIR, file.file.originalname);
-    let mime = mimetype.lookup(filePath);
+    const fileObj = new Files(process.env.STORAGE_TYPE).storage.getFile(file.file.originalname);
+    res.setHeader('Content-Type', fileObj.mime);
 
-    // set only the type if unknown
-    if (!mime) {
-      mime = 'application/octet-stream';
-      res.setHeader('Content-Type', mime);
-    }
-
-    res.sendFile(filePath, async (err)=>{
+    res.sendFile(fileObj.filePath, async (err)=>{
       if (err) {
         res.status(400).json({
           msg: 'File not found',
@@ -62,16 +67,15 @@ router.get('/:publicKey', async (req, res) => {
 router.delete('/:privateKey', async (req, res) => {
   const file = await FilesModel.getFileByPrivateKey(req.params.privateKey);
   if (file) {
-    const filePath = path.join(process.env.BASE_DIR, process.env.UPLOAD_DIR, file.file.originalname);
-    try {
-      unlinkSync(filePath);
+    const fileResponse = await new Files(process.env.STORAGE_TYPE).storage.deleteFile(file.file.originalname);
+    if (fileResponse === 0) {
+      res.status(400).json({
+        msg: 'File not found',
+      });
+    } else {
       await FilesModel.updateStatus(0, file.id);
       res.json({
         msg: 'Success',
-      });
-    } catch (e) {
-      res.status(400).json({
-        msg: 'File not found',
       });
     }
   } else {
