@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../app');
 const assert = require('assert').strict;
+const path = require('path');
 
 describe('it should return 404 status code in non-existing route', ()=>{
   it('GET /', ()=>{
@@ -13,21 +14,54 @@ describe('it should return 404 status code in non-existing route', ()=>{
 });
 
 describe('it should return 200 status code in existing route', ()=>{
-  it('POST /files', ()=>{
+  let uploaded = {
+    publicKey: '',
+    privateKey: '',
+  };
+  it('POST /files status 200', ()=>{
     return request(app)
         .post('/files')
         .set('Accept', 'multipart/form-data')
+        .attach('file', path.join(__dirname, './sample.png'))
         .expect(200)
         .expect('Content-Type', /json/)
-        .expect(`{"publicKey":"testkey","privateKey":"testkey"}`);
+        .expect( (res) => {
+          assert.equal(res.body.hasOwnProperty('publicKey'), true, 'has publicKey property');
+          assert.equal(res.body.hasOwnProperty('privateKey'), true, 'has privateKey property');
+          assert.equal(res.body.publicKey != '', true, 'privateKey should not be blank');
+          assert.equal(res.body.privateKey != '', true, 'privateKey should not be blank');
+          assert.equal(typeof res.body.publicKey, 'string', 'publicKey should be string');
+          assert.equal(typeof res.body.privateKey, 'string', 'privateKey should be string');
+          if (res.body.publicKey && res.body.privateKey) {
+            uploaded = {...res.body};
+          }
+        });
   });
 
-  it('GET /files/:publicKey', ()=>{
-    return request(app).get('/files/MyPublicKey').expect(200);
+  it('POST /files no file uploaded', ()=>{
+    return request(app)
+        .post('/files')
+        .set('Accept', 'multipart/form-data')
+        .expect(400)
+        .expect('Content-Type', /json/);
   });
 
-  it('DELETE /files/:privateKey', ()=>{
-    return request(app).delete('/files/MyPrivateKey').expect(200);
+  it('VALID GET /files/:publicKey', ()=>{
+    return request(app).get(`/files/${uploaded.publicKey}`)
+        .expect('Content-Type', /image\/png/)
+        .expect(200);
+  });
+
+  it('INVALID GET /files/:publicKey', ()=>{
+    return request(app).get('/files/MyPublicKey').expect(400);
+  });
+
+  it('VALID DELETE /files/:privateKey', ()=>{
+    return request(app).delete(`/files/${uploaded.privateKey}`).expect(200);
+  });
+
+  it('INVALID DELETE /files/:privateKey', ()=>{
+    return request(app).delete('/files/MyPrivateKey').expect(400);
   });
 });
 
