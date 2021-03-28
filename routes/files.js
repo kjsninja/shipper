@@ -41,11 +41,15 @@ router.get('/:publicKey', async (req, res) => {
       res.setHeader('Content-Type', mime);
     }
 
-    res.sendFile(filePath, (err)=>{
+    res.sendFile(filePath, async (err)=>{
       if (err) {
         res.status(400).json({
           msg: 'File not found',
         });
+      } else {
+        // update the datetime of file
+        // to track its activity if someone is using it
+        await FilesModel.updateStatus(1, file.id);
       }
     });
   } else {
