@@ -4,6 +4,8 @@ process.env.BASE_DIR = __dirname;
 const express = require('express');
 const app = express();
 
+require('./lib/database');
+
 app.use(express.urlencoded({extended: true}));
 
 app.use('/', require('./routes'));
