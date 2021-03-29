@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "knex migrate:latest && node index.js",
-    "cron" : "node cronjobs/cleanInActiveRecords.js",
+    "cron": "node cronjobs/cleanInActiveRecords.js",
     "test": "mocha tests/index.test.js",
     "migrate": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
@@ -25,6 +25,7 @@
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-rate-limit": "^5.2.6",
     "knex": "^0.95.4",
     "mime-types": "^2.1.29",
     "mocha": "^8.3.2",
