@@ -1,12 +1,12 @@
 const router = require('express').Router();
 const mw = require('../middlewares/headers');
+const limit = require('../middlewares/limit');
 const Files = require('../lib/Files');
 const FileStorage = new Files(process.env.STORAGE_TYPE);
 const FilesModel = require('../models/Files');
 const {v4} = require('uuid');
 
-// eslint-disable-next-line max-len
-router.post('/', [mw.checkMultipart], (req, res)=>{
+router.post('/', [limit.uploadLimit, mw.checkMultipart], (req, res)=>{
   FileStorage.upload()(req, res, async (err) => {
     if (err) {
       res.status(400).json({
@@ -41,7 +41,7 @@ router.post('/', [mw.checkMultipart], (req, res)=>{
   });
 });
 
-router.get('/:publicKey', async (req, res) => {
+router.get('/:publicKey', limit.downloadLimit, async (req, res) => {
   const file = await FilesModel.getFileByPublicKey(req.params.publicKey);
   if (file) {
     const fileObj = await FileStorage.getFile(file);
