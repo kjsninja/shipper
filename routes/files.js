@@ -1,12 +1,13 @@
 const router = require('express').Router();
 const mw = require('../middlewares/headers');
 const Files = require('../lib/Files');
+const FileStorage = new Files(process.env.STORAGE_TYPE);
 const FilesModel = require('../models/Files');
 const {v4} = require('uuid');
 
 // eslint-disable-next-line max-len
 router.post('/', [mw.checkMultipart], (req, res)=>{
-  (new Files(process.env.STORAGE_TYPE).single('file'))(req, res, async (err) => {
+  FileStorage.upload()(req, res, async (err) => {
     if (err) {
       res.status(400).json({
         msg: 'An unknown error occurred when uploading.',
@@ -43,18 +44,17 @@ router.post('/', [mw.checkMultipart], (req, res)=>{
 router.get('/:publicKey', async (req, res) => {
   const file = await FilesModel.getFileByPublicKey(req.params.publicKey);
   if (file) {
-    const fileObj = new Files(process.env.STORAGE_TYPE).storage.getFile(file.file.originalname);
-    res.setHeader('Content-Type', fileObj.mime);
+    const fileObj = await FileStorage.getFile(file);
+
+    if (fileObj) {
+      res.setHeader('Content-Type', fileObj.mime);
+    }
 
     res.sendFile(fileObj.filePath, async (err)=>{
       if (err) {
         res.status(400).json({
           msg: 'File not found',
         });
-      } else {
-        // update the datetime of file
-        // to track its activity if someone is using it
-        await FilesModel.updateStatus(1, file.id);
       }
     });
   } else {
@@ -67,13 +67,12 @@ router.get('/:publicKey', async (req, res) => {
 router.delete('/:privateKey', async (req, res) => {
   const file = await FilesModel.getFileByPrivateKey(req.params.privateKey);
   if (file) {
-    const fileResponse = await new Files(process.env.STORAGE_TYPE).storage.deleteFile(file.file.originalname);
-    if (fileResponse === 0) {
+    const fileResponse = await FileStorage.deleteFile(file);
+    if (fileResponse !== 1) {
       res.status(400).json({
         msg: 'File not found',
       });
     } else {
-      await FilesModel.updateStatus(0, file.id);
       res.json({
         msg: 'Success',
       });
