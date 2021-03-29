@@ -5,6 +5,14 @@ class Files {
     return db('files');
   }
 
+  getInactiveFiles(minutes = 5) {
+    return db('files')
+        .whereRaw(`EXTRACT(EPOCH FROM (NOW()::timestamp - updated_at::timestamp)) / 60 >= ${minutes}`)
+        .where({
+          status: 1,
+        });
+  }
+
   getFilesByIp(ip) {
     return db('files').where({ip});
   }
