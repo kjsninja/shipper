@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "knex migrate:latest && node index.js",
+    "cron" : "node cronjobs/cleanInActiveRecords.js",
     "test": "mocha tests/index.test.js",
     "migrate": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
@@ -21,6 +22,7 @@
   },
   "homepage": "https://github.com/kjsninja/shipper#readme",
   "dependencies": {
+    "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "knex": "^0.95.4",
