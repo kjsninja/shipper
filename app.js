@@ -1,5 +1,5 @@
 require('dotenv').config();
-process.env.BASE_DIR = __dirname;
+require('./lib/basedir');
 
 const express = require('express');
 const app = express();
