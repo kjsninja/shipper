@@ -18,19 +18,36 @@ npm install
 
 ```
 NODE_ENV=development
-PORT=3000
+PORT=
 
-UPLOAD_DIR=uploads
+# PATH TO UPLOAD
+UPLOAD_DIR=
 
 # default to disk
 # make sure you have upload dir
 STORAGE_TYPE=disk
+
+# in minutes
+# default 5minutes
+INACTIVE_FILE_TTL=5
 
 DB_HOST=127.0.0.1
 DB_USER=postgres
 DB_PASS=password
 DB_NAME=shipper       # make sure you have database name called shipper
 DB_PORT=5432
+
+CRON_SCHED=* * * * *
+
+# Ratelimit Time to live in minutes
+# Default 1 day
+RATELIMIT_TTL=86400
+
+# limit daily download per ip
+DAILY_DOWNLOAD=5
+
+# limit daily upload per ip
+DAILY_UPLOAD=5
 ```
 
 2. Run the dev
