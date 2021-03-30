@@ -63,6 +63,9 @@ GCP_BUCKET_NAME=YOUR-BUCKET-NAME
 npm run migrate
 
 npm run dev
+
+# start the cron in separate process
+npm run cron
 ```
 
 3. Run test
@@ -75,4 +78,7 @@ npm run test
 
 ```
 npm start
+
+# start the cron in separate process
+npm run cron
 ```
