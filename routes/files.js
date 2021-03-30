@@ -48,15 +48,13 @@ router.get('/:publicKey', limit.downloadLimit, async (req, res) => {
 
     if (fileObj) {
       res.setHeader('Content-Type', fileObj.mime);
+      res.setHeader('Content-Disposition', `inline; filename=${file.file.originalname};`);
+      res.send(fileObj.file);
+    } else {
+      res.status(400).json({
+        msg: 'File not found',
+      });
     }
-
-    res.sendFile(fileObj.filePath, async (err)=>{
-      if (err) {
-        res.status(400).json({
-          msg: 'File not found',
-        });
-      }
-    });
   } else {
     res.status(400).json({
       msg: 'File not found',
