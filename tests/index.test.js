@@ -13,7 +13,7 @@ describe('it should return 404 status code in non-existing route', ()=>{
   });
 });
 
-describe('it should return 200 status code in existing route', ()=>{
+describe('it should proceed with disk storage', ()=>{
   let uploaded = {
     publicKey: '',
     privateKey: '',
@@ -68,6 +68,7 @@ describe('it should return 200 status code in existing route', ()=>{
 
 const Files = require('../lib/Files');
 const DiskStorage = require('../lib/Storage/DiskStorage');
+const GCPStorage = require('../lib/Storage/GCPStorage');
 describe('Files Unit Tests', ()=>{
   it('disk storage as default storage', ()=>{
     const disk = new Files();
@@ -77,5 +78,10 @@ describe('Files Unit Tests', ()=>{
   it('disk storage passed as "disk"', ()=>{
     const disk = new Files('disk');
     return assert.equal(disk.storage instanceof DiskStorage, true);
+  });
+
+  it('disk storage passed as "gcp"', ()=>{
+    const disk = new Files('gcp');
+    return assert.equal(disk.storage instanceof GCPStorage, true);
   });
 });
